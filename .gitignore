@@ -1,0 +1,9 @@
+node_modules/
+servers/*/world/
+servers/*/logs/
+servers/*/server.jar
+downloads/jars/*.jar
+downloads/plugins/*.jar
+*.log
+.env
+.DS_Store

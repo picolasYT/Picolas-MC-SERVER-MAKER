@@ -1,0 +1,30 @@
+[
+  {
+    "name": "EssentialsX",
+    "description": "Comandos b\u00e1sicos: /spawn, /home, /tpa.",
+    "recommended": true,
+    "type": "paper",
+    "url": "https://github.com/EssentialsX/Essentials/releases/latest/download/EssentialsX.jar"
+  },
+  {
+    "name": "LuckPerms",
+    "description": "Permisos, rangos y grupos.",
+    "recommended": true,
+    "type": "paper",
+    "url": "https://download.luckperms.net/1564/bukkit/loader/LuckPerms-Bukkit-5.4.158.jar"
+  },
+  {
+    "name": "Vault",
+    "description": "API de econom\u00eda/permisos para plugins.",
+    "recommended": true,
+    "type": "paper",
+    "url": "https://github.com/MilkBowl/Vault/releases/latest/download/Vault.jar"
+  },
+  {
+    "name": "WorldEdit",
+    "description": "Editar mundo con comandos.",
+    "recommended": false,
+    "type": "paper",
+    "url": "https://dev.bukkit.org/projects/worldedit/files/latest"
+  }
+]

@@ -1,0 +1,6 @@
+{
+  "panelPort": 3000,
+  "defaultRam": 2048,
+  "defaultMinecraftPort": 25565,
+  "tunnelProvider": "pinggy"
+}
