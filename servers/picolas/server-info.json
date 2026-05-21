@@ -1,0 +1,18 @@
+{
+  "name": "picolas",
+  "description": "test",
+  "version": "1.21.4",
+  "type": "paper",
+  "ram": 2048,
+  "port": 25565,
+  "adminUser": "",
+  "maxPlayers": 10,
+  "cracked": true,
+  "whitelist": false,
+  "eula": true,
+  "autoDownload": true,
+  "autoStart": true,
+  "autoTunnel": true,
+  "id": "picolas",
+  "path": "servers/picolas"
+}

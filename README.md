@@ -1,6 +1,6 @@
-# Picolas-Mc-Server Pinggy
+# Picolas-Mc-Server Pinggy Pro
 
-Panel local para crear servidores Minecraft y publicarlos con Pinggy.io usando SSH reverse tunnel.
+Panel local para crear servidores Minecraft y publicarlos con Pinggy.io.
 
 ## Iniciar
 
@@ -8,34 +8,31 @@ Panel local para crear servidores Minecraft y publicarlos con Pinggy.io usando S
 node server.js
 ```
 
-El servidor instala dependencias faltantes automáticamente.
+Abrí el puerto 3000 en Codespaces o entrá a `http://localhost:3000` si estás en tu PC.
 
-En Codespaces abrí el puerto `3000` desde la pestaña **Ports**.
+## Nuevo en esta versión
 
-## Java recomendado
+- Botón **Optimizar servidor**: edita `server.properties` para mejorar rendimiento.
+- Botón **Copiar IP pública**.
+- Al crear servidor puede iniciar Minecraft y crear IP pública Pinggy automáticamente.
+- Sección **Modo Codespaces** con recomendaciones seguras.
 
-Para Minecraft moderno:
+## Conectarse al server
 
-```bash
-sudo apt update
-sudo apt install -y openjdk-21-jdk
-java -version
-```
-
-## Pinggy
-
-Pinggy no necesita instalar cliente aparte. Usa SSH:
-
-```bash
-ssh -p 443 -R0:localhost:25565 tcp@a.pinggy.io
-```
-
-El panel puede iniciar ese túnel desde el botón **Iniciar Pinggy**.
-
-La dirección para Minecraft es algo como:
+Cuando Pinggy muestre algo tipo:
 
 ```txt
 xxxx.a.pinggy.link:12345
 ```
 
-Sin `tcp://`.
+En Minecraft entrás con esa dirección, sin `tcp://`.
+
+## Codespaces
+
+No incluye anti-idle. Para evitar cortes, aumentá el timeout oficial:
+
+```txt
+GitHub → Settings → Codespaces → Default idle timeout → 240 minutes
+```
+
+Para 24/7 real, usá una PC propia, VPS o hosting.

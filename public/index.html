@@ -1,14 +1,144 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Picolas-Mc-Server</title><link rel="stylesheet" href="/style.css"></head><body>
-<div class="app"><aside><h1>⛏️ Picolas</h1><p>MC Server</p><button onclick="show('dashboard')">Dashboard</button><button onclick="show('servers')">Servidores</button><button onclick="show('create')">Crear server</button><button onclick="show('players')">Jugadores</button><button onclick="show('console')">Consola</button><button onclick="show('stats')">Estadísticas</button><button onclick="show('plugins')">Plugins</button><button onclick="show('files')">Archivos</button><button onclick="show('pinggy')">Pinggy</button></aside>
-<main><header><strong id="title">Dashboard</strong><select id="serverSelect" onchange="selectedServer=this.value; refreshAll()"></select></header>
-<section id="dashboard" class="page"><div class="hero"><h2>Picolas-Mc-Server + Pinggy</h2><p>Creá servidores Minecraft y publicalos con SSH tunnel sin ngrok ni tarjeta.</p><button onclick="show('create')">Crear mi primer servidor</button></div><div id="serverCards" class="grid"></div></section>
-<section id="servers" class="page hidden"><h2>Servidores</h2><div id="serversList"></div></section>
-<section id="create" class="page hidden"><h2>Crear servidor en 4 pasos</h2><div class="wizard"><div><label>1. Nombre</label><input id="c_name" placeholder="Survival Picolas"><label>Descripción</label><textarea id="c_desc" placeholder="Server con amigos"></textarea></div><div><label>2. Versión</label><select id="c_version"><option>1.21.4</option><option>1.21.1</option><option>1.20.6</option><option>1.19.4</option></select><label>Tipo</label><select id="c_type"><option value="paper">⭐ Paper recomendado</option><option value="vanilla">Vanilla manual</option><option value="bedrock">Bedrock manual</option></select></div><div><label>3. RAM MB</label><input id="c_ram" value="2048"><label>Puerto</label><input id="c_port" value="25565"></div><div><label>4. Config final</label><input id="c_admin" placeholder="Usuario admin / OP"><input id="c_max" value="20" placeholder="Máx jugadores"><label><input type="checkbox" id="c_cracked"> Habilitar cracked</label><label><input type="checkbox" id="c_whitelist"> Habilitar whitelist</label><label><input type="checkbox" id="c_eula" checked> Aceptar EULA</label><button onclick="createServer()">Crear y descargar Paper</button></div></div></section>
-<section id="players" class="page hidden"><h2>Jugadores</h2><div id="playersBox"></div></section>
-<section id="console" class="page hidden"><h2>Consola</h2><pre id="logs"></pre><div class="row"><input id="cmd" placeholder="say hola"><button onclick="sendCommand()">Enviar</button><button onclick="quick('list')">list</button><button onclick="quick('save-all')">save-all</button><button onclick="quick('time set day')">día</button></div></section>
-<section id="stats" class="page hidden"><h2>Estadísticas</h2><div id="statsBox" class="grid"></div></section>
-<section id="plugins" class="page hidden"><h2>Plugins</h2><div id="pluginsBox"></div></section>
-<section id="files" class="page hidden"><h2>Archivos</h2><div class="split"><div><button onclick="loadFiles('')">Raíz</button><div id="filesBox"></div></div><div><input id="filePath" placeholder="server.properties"><textarea id="fileContent"></textarea><button onclick="saveFile()">Guardar</button></div></div></section>
-<section id="pinggy" class="page hidden"><h2>Pinggy.io</h2><p>Inicia un túnel TCP al puerto del server. La IP pública aparece abajo. En Minecraft usá la dirección sin tcp://.</p><button onclick="startTunnel()">Iniciar Pinggy</button><button onclick="stopTunnel()" class="danger">Detener Pinggy</button><div id="tunnelBox" class="card"></div><pre>Comando manual:
-ssh -p 443 -R0:localhost:25565 tcp@a.pinggy.io</pre></section>
-</main></div><script src="/app.js"></script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Picolas-Mc-Server</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">
+      <div class="logo">⛏️</div>
+      <div>
+        <h1>Picolas</h1>
+        <p>MC Server</p>
+      </div>
+    </div>
+    <button onclick="show('dashboard')">🏠 Dashboard</button>
+    <button onclick="show('servers')">🧱 Servidores</button>
+    <button onclick="show('create')">➕ Crear server</button>
+    <button onclick="show('players')">👥 Jugadores</button>
+    <button onclick="show('console')">💻 Consola</button>
+    <button onclick="show('stats')">📊 Estadísticas</button>
+    <button onclick="show('plugins')">📦 Plugins</button>
+    <button onclick="show('files')">📁 Archivos</button>
+    <button onclick="show('pinggy')">🌐 IP pública</button>
+    <button onclick="show('codespaces')">⚡ Codespaces</button>
+  </aside>
+
+  <main>
+    <header>
+      <div>
+        <strong id="pageTitle">Dashboard</strong>
+        <small>Panel local para Minecraft + Pinggy</small>
+      </div>
+      <select id="serverSelect" onchange="selectedServer=this.value; refreshAll()"></select>
+    </header>
+
+    <section id="dashboard" class="page">
+      <div class="hero">
+        <div>
+          <h2>Picolas-Mc-Server</h2>
+          <p>Creá servidores Minecraft, optimizalos y publicalos automáticamente con Pinggy.</p>
+        </div>
+        <button onclick="show('create')">Crear mi primer servidor</button>
+      </div>
+      <div class="grid stats-grid" id="dashboardStats"></div>
+      <h2>Mis servidores</h2>
+      <div id="serverCards" class="grid"></div>
+    </section>
+
+    <section id="servers" class="page hidden">
+      <h2>Servidores</h2>
+      <div id="serversList"></div>
+    </section>
+
+    <section id="create" class="page hidden">
+      <h2>Crear servidor en 4 pasos</h2>
+      <div class="progress"><span>Paso 1 Info</span><span>Paso 2 Versión</span><span>Paso 3 Recursos</span><span>Paso 4 Final</span></div>
+      <div class="wizard">
+        <div>
+          <label>1. Nombre</label>
+          <input id="c_name" placeholder="Survival Picolas">
+          <label>Descripción</label>
+          <textarea id="c_desc" placeholder="Server survival con amigos"></textarea>
+        </div>
+        <div>
+          <label>2. Versión</label>
+          <select id="c_version"><option>1.21.4</option><option>1.21.1</option><option>1.20.6</option><option>1.20.1</option><option>1.19.4</option></select>
+          <label>Tipo</label>
+          <select id="c_type"><option value="paper">⭐ Paper recomendado</option><option value="vanilla">Vanilla manual</option><option value="bedrock">Bedrock manual</option></select>
+          <div class="hint">Paper descarga automático. Vanilla/Bedrock quedan manuales.</div>
+        </div>
+        <div>
+          <label>3. RAM MB</label>
+          <input id="c_ram" value="2048">
+          <label>Puerto</label>
+          <input id="c_port" value="25565">
+          <label>Máximo jugadores</label>
+          <input id="c_max" value="10">
+        </div>
+        <div>
+          <label>4. Config final</label>
+          <input id="c_admin" placeholder="Usuario admin / OP">
+          <label><input type="checkbox" id="c_cracked"> Habilitar cracked</label>
+          <label><input type="checkbox" id="c_whitelist"> Habilitar whitelist</label>
+          <label><input type="checkbox" id="c_eula" checked> Aceptar EULA</label>
+          <label><input type="checkbox" id="c_autoStart" checked> Iniciar server automáticamente</label>
+          <label><input type="checkbox" id="c_autoTunnel" checked> Crear IP pública Pinggy automáticamente</label>
+          <button onclick="createServer()">Crear server + IP pública</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="players" class="page hidden">
+      <h2>Jugadores</h2>
+      <div id="playersBox"></div>
+    </section>
+
+    <section id="console" class="page hidden">
+      <h2>Consola</h2>
+      <pre id="logs"></pre>
+      <div class="row"><input id="cmd" placeholder="say hola"><button onclick="sendCommand()">Enviar</button><button onclick="quick('list')">list</button><button onclick="quick('save-all')">save-all</button><button onclick="quick('time set day')">día</button></div>
+    </section>
+
+    <section id="stats" class="page hidden">
+      <h2>Estadísticas</h2>
+      <div id="statsBox" class="grid"></div>
+    </section>
+
+    <section id="plugins" class="page hidden">
+      <h2>Plugins</h2>
+      <div id="pluginsBox" class="grid"></div>
+    </section>
+
+    <section id="files" class="page hidden">
+      <h2>Archivos</h2>
+      <div class="split"><div><button onclick="loadFiles('')">Raíz</button><div id="filesBox"></div></div><div><input id="filePath" placeholder="server.properties"><textarea id="fileContent"></textarea><button onclick="saveFile()">Guardar</button></div></div>
+    </section>
+
+    <section id="pinggy" class="page hidden">
+      <h2>IP pública / Pinggy.io</h2>
+      <p>El panel puede iniciar un túnel TCP automático al puerto del server. En Minecraft usá la dirección sin <b>tcp://</b>.</p>
+      <div class="row wrap"><button onclick="startTunnel()">Iniciar Pinggy</button><button onclick="stopTunnel()" class="danger">Detener Pinggy</button><button onclick="copyIp()" class="secondary">Copiar IP pública</button></div>
+      <div id="tunnelBox" class="card"></div>
+      <pre>Comando manual:
+ssh -p 443 -R0:localhost:25565 tcp@a.pinggy.io</pre>
+    </section>
+
+    <section id="codespaces" class="page hidden">
+      <h2>Modo Codespaces</h2>
+      <div class="grid">
+        <div class="card"><h3>🚀 Optimización rápida</h3><p>Baja view-distance, simulation-distance y otros valores para que el server vaya mejor.</p><button onclick="optimizeSelected()">Optimizar servidor</button></div>
+        <div class="card"><h3>📋 Copiar IP</h3><p>Copia la IP pública generada por Pinggy para pasarla a tus amigos.</p><button onclick="copyIp()">Copiar IP pública</button></div>
+        <div class="card"><h3>⏱️ Inactividad</h3><p>No agregué un bot anti-idle. Lo correcto es subir el timeout oficial de Codespaces a 240 minutos.</p><pre>GitHub → Settings → Codespaces → Default idle timeout → 240 minutes</pre></div>
+      </div>
+    </section>
+  </main>
+</div>
+<div id="toast"></div>
+<script src="/app.js"></script>
+</body>
+</html>

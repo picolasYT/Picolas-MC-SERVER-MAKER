@@ -19,6 +19,7 @@ const ensureFolders = require('./src/utils/ensureFolders');
 const { readJson, writeJson } = require('./src/utils/jsonStore');
 const { createServer, ensureJar, startServer, stopServer, sendCommand, getState, isRunning } = require('./src/minecraft/serverManager');
 const { installPlugin } = require('./src/minecraft/pluginInstaller');
+const { optimizeServer } = require('./src/minecraft/optimizer');
 const { startPinggy, stopPinggy, getTunnel } = require('./src/tunnel/pinggyManager');
 const { getStats } = require('./src/stats/systemStats');
 const fileManager = require('./src/files/fileManager');
@@ -49,10 +50,19 @@ app.post('/api/servers/create', async (req,res)=>{
     const server = { id:info.id, name:cfg.name, description:cfg.description||'', type:cfg.type||'paper', version:cfg.version||'1.21.4', port:Number(cfg.port||25565), ram:Number(cfg.ram||2048), maxPlayers:Number(cfg.maxPlayers||20), cracked:!!cfg.cracked, whitelist:!!cfg.whitelist, adminUser:cfg.adminUser||'', path:info.path, createdAt:new Date().toISOString() };
     const list = servers(); list.push(server); saveServers(list);
     if(cfg.autoDownload !== false && server.type === 'paper') await ensureJar(ROOT, server);
-    res.json({ok:true, server});
+    let started = null;
+    let tunnel = null;
+    if (cfg.autoStart) {
+      try { started = startServer(ROOT, server); } catch (e) { started = { error: e.message }; }
+    }
+    if (cfg.autoTunnel) {
+      try { tunnel = startPinggy(server.id, server.port); } catch (e) { tunnel = { error: e.message }; }
+    }
+    res.json({ok:true, server, started, tunnel});
   }catch(e){ res.status(400).json({ok:false,error:e.message}); }
 });
 app.post('/api/servers/:id/download-jar', async (req,res)=>{ try{ const result=await ensureJar(ROOT,getServer(req.params.id)); res.json({ok:true,result}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
+app.post('/api/servers/:id/optimize', (req,res)=>{ try{ const s=getServer(req.params.id); const result=optimizeServer(path.join(ROOT,s.path)); res.json({ok:true,result}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
 app.post('/api/servers/:id/start', (req,res)=>{ try{ const s=getServer(req.params.id); const result=startServer(ROOT,s); res.json({ok:true,result}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
 app.post('/api/servers/:id/stop', (req,res)=>{ try{ stopServer(req.params.id); res.json({ok:true}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
 app.post('/api/servers/:id/command', (req,res)=>{ try{ sendCommand(req.params.id, req.body.command); res.json({ok:true}); }catch(e){res.status(400).json({ok:false,error:e.message});} });

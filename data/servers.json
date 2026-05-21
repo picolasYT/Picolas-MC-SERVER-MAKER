@@ -1,1 +1,17 @@
-[]
+[
+  {
+    "id": "picolas",
+    "name": "picolas",
+    "description": "test",
+    "type": "paper",
+    "version": "1.21.4",
+    "port": 25565,
+    "ram": 2048,
+    "maxPlayers": 10,
+    "cracked": true,
+    "whitelist": false,
+    "adminUser": "",
+    "path": "servers/picolas",
+    "createdAt": "2026-05-21T00:39:44.682Z"
+  }
+]

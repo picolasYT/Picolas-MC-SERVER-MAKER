@@ -1,0 +1,1 @@
+Si no usaste Paper automático, poné tu server.jar acá con el nombre server.jar
