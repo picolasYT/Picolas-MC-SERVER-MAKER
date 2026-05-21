@@ -1,38 +1,27 @@
 # Picolas-Mc-Server Pinggy Pro
 
-Panel local para crear servidores Minecraft y publicarlos con Pinggy.io.
+Panel local para crear y administrar servidores Minecraft Paper con IP pública por Pinggy.
 
 ## Iniciar
 
 ```bash
+npm install
 node server.js
 ```
 
-Abrí el puerto 3000 en Codespaces o entrá a `http://localhost:3000` si estás en tu PC.
+Abrí el panel en el puerto 3000.
 
-## Nuevo en esta versión
+## Nuevas funciones
 
-- Botón **Optimizar servidor**: edita `server.properties` para mejorar rendimiento.
-- Botón **Copiar IP pública**.
-- Al crear servidor puede iniciar Minecraft y crear IP pública Pinggy automáticamente.
-- Sección **Modo Codespaces** con recomendaciones seguras.
+- Plugin Store: busca plugins Paper desde Modrinth y los instala en `plugins/`.
+- Packs recomendados: survival, rendimiento, compatibilidad y lobby.
+- Actualizar plugins instalados desde la tienda.
+- Editor visual de `server.properties`.
+- Logs inteligentes con detección de errores comunes.
+- Añadir archivos desde el panel a cualquier carpeta segura del servidor.
+- Optimizar servidor para Codespaces/Replit/PC floja.
+- Crear IP pública automática con Pinggy.
 
-## Conectarse al server
+## Nota
 
-Cuando Pinggy muestre algo tipo:
-
-```txt
-xxxx.a.pinggy.link:12345
-```
-
-En Minecraft entrás con esa dirección, sin `tcp://`.
-
-## Codespaces
-
-No incluye anti-idle. Para evitar cortes, aumentá el timeout oficial:
-
-```txt
-GitHub → Settings → Codespaces → Default idle timeout → 240 minutes
-```
-
-Para 24/7 real, usá una PC propia, VPS o hosting.
+Los mundos, jars, plugins descargados y carpetas de servidores no deberían subirse a GitHub. Usá `.gitignore`.

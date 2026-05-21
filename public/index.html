@@ -23,6 +23,8 @@
     <button onclick="show('console')">💻 Consola</button>
     <button onclick="show('stats')">📊 Estadísticas</button>
     <button onclick="show('plugins')">📦 Plugins</button>
+    <button onclick="show('properties')">⚙️ Propiedades</button>
+    <button onclick="show('logsai')">🧠 Logs inteligentes</button>
     <button onclick="show('files')">📁 Archivos</button>
     <button onclick="show('pinggy')">🌐 IP pública</button>
     <button onclick="show('codespaces')">⚡ Codespaces</button>
@@ -110,13 +112,66 @@
     </section>
 
     <section id="plugins" class="page hidden">
-      <h2>Plugins</h2>
+      <h2>Plugin Store</h2>
+      <div class="card">
+        <div class="row wrap">
+          <input id="pluginSearch" placeholder="Buscar plugins Paper: EssentialsX, LuckPerms, ViaVersion...">
+          <button onclick="searchStorePlugins()">Buscar</button>
+          <button onclick="updateAllPlugins()" class="secondary">Actualizar plugins</button>
+        </div>
+        <p class="hint">Busca plugins Paper desde Modrinth y los instala automáticamente en la carpeta <b>plugins/</b> del servidor elegido.</p>
+      </div>
+      <h3>Packs recomendados</h3>
+      <div id="packsBox" class="grid"></div>
+      <h3>Resultados de búsqueda</h3>
+      <div id="pluginStoreBox" class="grid"></div>
+      <h3>Plugins instalados</h3>
+      <div id="installedPluginsBox" class="grid"></div>
+      <h3>Plugins manuales guardados en data/plugins.json</h3>
       <div id="pluginsBox" class="grid"></div>
+    </section>
+
+    <section id="properties" class="page hidden">
+      <h2>Editor visual de server.properties</h2>
+      <div class="card">
+        <p>Editá lo importante sin tocar texto raro. Guardá y reiniciá el server para aplicar cambios.</p>
+        <div id="propertiesForm" class="grid"></div>
+        <button onclick="saveProperties()">Guardar propiedades</button>
+        <button onclick="optimizeSelected()" class="secondary">Optimizar servidor</button>
+      </div>
+    </section>
+
+    <section id="logsai" class="page hidden">
+      <h2>Logs inteligentes</h2>
+      <div class="card">
+        <p>Detecta errores comunes: Java viejo, EULA, puerto ocupado, plugins rotos, falta de RAM y lag.</p>
+        <button onclick="loadLogInsights()">Analizar ahora</button>
+      </div>
+      <div id="logInsightsBox" class="grid"></div>
     </section>
 
     <section id="files" class="page hidden">
       <h2>Archivos</h2>
-      <div class="split"><div><button onclick="loadFiles('')">Raíz</button><div id="filesBox"></div></div><div><input id="filePath" placeholder="server.properties"><textarea id="fileContent"></textarea><button onclick="saveFile()">Guardar</button></div></div>
+      <div class="split">
+        <div>
+          <div class="card">
+            <button onclick="loadFiles('')">Raíz</button>
+            <input id="newFolderPath" placeholder="Nueva carpeta, ej: plugins/MiCarpeta">
+            <button onclick="createFolder()" class="secondary">Crear carpeta</button>
+            <form id="uploadForm" onsubmit="uploadFile(event)">
+              <input id="uploadDest" placeholder="Subir en carpeta, ej: plugins" value="plugins">
+              <input id="uploadFileInput" type="file">
+              <button type="submit">Añadir archivo</button>
+            </form>
+          </div>
+          <div id="filesBox"></div>
+        </div>
+        <div>
+          <input id="filePath" placeholder="server.properties">
+          <textarea id="fileContent"></textarea>
+          <button onclick="saveFile()">Guardar</button>
+        </div>
+      </div>
     </section>
 
     <section id="pinggy" class="page hidden">

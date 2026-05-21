@@ -1,0 +1,26 @@
+[
+  {
+    "id": "survival-basic",
+    "name": "Pack Survival básico",
+    "description": "Comandos, permisos, economía y protección básica.",
+    "plugins": ["EssentialsX", "LuckPerms", "Vault", "CoreProtect", "GriefPrevention"]
+  },
+  {
+    "id": "performance",
+    "name": "Pack Rendimiento",
+    "description": "Herramientas para medir lag y preparar chunks.",
+    "plugins": ["spark", "Chunky", "ChunkyBorder"]
+  },
+  {
+    "id": "compatibility",
+    "name": "Pack Compatibilidad versiones",
+    "description": "Permite clientes de diferentes versiones de Minecraft.",
+    "plugins": ["ViaVersion", "ViaBackwards", "ViaRewind"]
+  },
+  {
+    "id": "lobby",
+    "name": "Pack Lobby",
+    "description": "Plugins útiles para lobby y servidores simples.",
+    "plugins": ["TAB", "Maintenance", "DeluxeHub"]
+  }
+]

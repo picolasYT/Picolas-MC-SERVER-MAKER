@@ -1,11 +1,11 @@
 {
   "name": "picolas",
-  "description": "test",
+  "description": "server de pruebas",
   "version": "1.21.4",
   "type": "paper",
   "ram": 2048,
   "port": 25565,
-  "adminUser": "",
+  "adminUser": "picolas_yt",
   "maxPlayers": 10,
   "cracked": true,
   "whitelist": false,

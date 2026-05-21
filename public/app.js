@@ -31,3 +31,93 @@ function copyIpFor(id){const s=cachedServers.find(x=>x.id===id);const ip=ipOf(s)
 function copyIp(){copyIpFor(selectedServer)}
 async function refreshAll(){try{await loadServers(); await loadState(); await loadStats(); await loadPlugins();}catch(e){console.warn(e)}}
 setInterval(()=>{loadState();loadStats();loadServers()},3000);refreshAll();
+
+// ===== Plugin Store + Packs =====
+async function searchStorePlugins(){
+  const q=$('pluginSearch')?.value||'';
+  try{
+    $('pluginStoreBox').innerHTML='<div class="card">Buscando plugins...</div>';
+    const d=await api(`/api/plugins/search?q=${encodeURIComponent(q)}&limit=18`);
+    $('pluginStoreBox').innerHTML=d.items.map(p=>`<div class="card plugin-card"><div class="plugin-head">${p.iconUrl?`<img src="${p.iconUrl}" alt="">`:''}<div><h3>${p.title}</h3><p>${p.description||''}</p></div></div><div class="badges"><span class="badge">⬇ ${p.downloads.toLocaleString()}</span><span class="badge">Modrinth</span></div><div class="actions"><button onclick='installStorePlugin(${JSON.stringify(p).replace(/'/g,"&apos;")})'>Instalar</button><button onclick="window.open('${p.url}','_blank')" class="secondary">Ver</button></div></div>`).join('') || '<div class="card">No encontré plugins.</div>';
+  }catch(e){alert(e.message)}
+}
+async function installStorePlugin(p){
+  if(!selectedServer)return alert('Elegí server');
+  try{toast('Instalando plugin...');await api(`/api/servers/${selectedServer}/plugins/store-install`,{method:'POST',body:JSON.stringify(p)});toast('Plugin instalado ✅ Reiniciá el server');loadInstalledPlugins();}
+  catch(e){alert(e.message)}
+}
+async function loadPacks(){
+  try{const packs=await api('/api/plugin-packs');$('packsBox').innerHTML=packs.map(pack=>`<div class="card"><h3>${pack.name}</h3><p>${pack.description}</p><p class="hint">${pack.plugins.join(' • ')}</p><button onclick="installPack('${pack.id}')">Instalar pack</button></div>`).join('')}catch(e){console.warn(e)}
+}
+async function installPack(packId){
+  if(!selectedServer)return alert('Elegí server');
+  try{toast('Instalando pack... puede tardar');const d=await api(`/api/servers/${selectedServer}/plugins/install-pack`,{method:'POST',body:JSON.stringify({packId})});const ok=d.result.filter(x=>x.ok).length;toast(`Pack instalado: ${ok}/${d.result.length} plugins ✅`);loadInstalledPlugins();}
+  catch(e){alert(e.message)}
+}
+async function loadInstalledPlugins(){
+  if(!selectedServer)return;
+  try{const d=await api(`/api/servers/${selectedServer}/plugins/installed`);$('installedPluginsBox').innerHTML=d.items.map(p=>`<div class="card"><h3>${p.fileName}</h3>${p.tracked?`<p>${p.tracked.title} v${p.tracked.versionNumber}</p><button onclick="updatePlugin('${p.tracked.projectId}')" class="secondary">Actualizar</button>`:'<p class="hint">Plugin manual. No se puede actualizar automático porque no sé de dónde salió.</p>'}</div>`).join('')||'<div class="card">No hay plugins instalados.</div>'}catch(e){console.warn(e)}
+}
+async function updatePlugin(projectId){
+  try{toast('Buscando actualización...');const d=await api(`/api/servers/${selectedServer}/plugins/update`,{method:'POST',body:JSON.stringify({projectId})});toast(d.result.some(x=>x.updated)?'Plugin actualizado ✅':'Ya estaba actualizado');loadInstalledPlugins();}
+  catch(e){alert(e.message)}
+}
+async function updateAllPlugins(){
+  if(!selectedServer)return alert('Elegí server');
+  try{toast('Actualizando plugins...');const d=await api(`/api/servers/${selectedServer}/plugins/update`,{method:'POST',body:JSON.stringify({})});const count=d.result.filter(x=>x.updated).length;toast(`${count} plugins actualizados ✅`);loadInstalledPlugins();}
+  catch(e){alert(e.message)}
+}
+
+// ===== Editor visual de server.properties =====
+async function loadProperties(){
+  if(!selectedServer)return;
+  try{
+    const d=await api(`/api/servers/${selectedServer}/properties`);
+    $('propertiesForm').innerHTML=d.fields.map(f=>{
+      const v=d.values[f.key]??'';
+      if(['online-mode','white-list','pvp','enable-command-block'].includes(f.key)){
+        return `<label class="card"><b>${f.label}</b><select data-prop="${f.key}"><option value="true" ${v==='true'?'selected':''}>true</option><option value="false" ${v==='false'?'selected':''}>false</option></select><small>${f.key}</small></label>`;
+      }
+      if(f.key==='difficulty'){
+        return `<label class="card"><b>${f.label}</b><select data-prop="${f.key}">${['peaceful','easy','normal','hard'].map(x=>`<option ${v===x?'selected':''}>${x}</option>`).join('')}</select><small>${f.key}</small></label>`;
+      }
+      if(f.key==='gamemode'){
+        return `<label class="card"><b>${f.label}</b><select data-prop="${f.key}">${['survival','creative','adventure','spectator'].map(x=>`<option ${v===x?'selected':''}>${x}</option>`).join('')}</select><small>${f.key}</small></label>`;
+      }
+      return `<label class="card"><b>${f.label}</b><input data-prop="${f.key}" value="${String(v).replace(/"/g,'&quot;')}"><small>${f.key}</small></label>`;
+    }).join('');
+  }catch(e){$('propertiesForm').innerHTML=`<div class="card">${e.message}</div>`}
+}
+async function saveProperties(){
+  if(!selectedServer)return alert('Elegí server');
+  const values={};document.querySelectorAll('[data-prop]').forEach(el=>values[el.dataset.prop]=el.value);
+  try{await api(`/api/servers/${selectedServer}/properties`,{method:'POST',body:JSON.stringify({values})});toast('server.properties guardado ✅ Reiniciá el server');}
+  catch(e){alert(e.message)}
+}
+
+// ===== Logs inteligentes =====
+async function loadLogInsights(){
+  if(!selectedServer)return;
+  try{const d=await api(`/api/servers/${selectedServer}/log-insights`);$('logInsightsBox').innerHTML=d.issues.map(i=>`<div class="card insight ${i.level}"><h3>${i.level==='ok'?'✅':i.level==='warning'?'⚠️':'❌'} ${i.title}</h3><p>${i.detail}</p><pre>${i.fix}</pre></div>`).join('')||'<div class="card">Todavía no detecté problemas en los logs.</div>'}catch(e){alert(e.message)}
+}
+
+// ===== Añadir archivos =====
+async function uploadFile(ev){
+  ev.preventDefault();
+  if(!selectedServer)return alert('Elegí server');
+  const file=$('uploadFileInput').files[0]; if(!file)return alert('Elegí un archivo');
+  const fd=new FormData(); fd.append('file',file); fd.append('destDir',$('uploadDest').value||'');
+  try{const r=await fetch(`/api/servers/${selectedServer}/upload-file`,{method:'POST',body:fd});const d=await r.json();if(!r.ok||d.ok===false)throw new Error(d.error||'Error');toast('Archivo añadido ✅');loadFiles($('uploadDest').value||'');}
+  catch(e){alert(e.message)}
+}
+async function createFolder(){
+  if(!selectedServer)return alert('Elegí server');
+  try{await api(`/api/servers/${selectedServer}/folder`,{method:'POST',body:JSON.stringify({path:$('newFolderPath').value})});toast('Carpeta creada ✅');loadFiles('');}
+  catch(e){alert(e.message)}
+}
+
+const _oldRefreshAll = refreshAll;
+refreshAll = async function(){
+  try{await _oldRefreshAll(); await loadPacks(); await loadInstalledPlugins(); await loadProperties(); await loadLogInsights();}
+  catch(e){console.warn(e)}
+}

@@ -1,7 +1,28 @@
+# Dependencias
 node_modules/
+package-lock.json
+
+# Servidores generados
 servers/
 downloads/
+
+# Mundos, jars, plugins y cache de Minecraft
+*.jar
+*.log
+*.zip
+*.tar
+*.gz
+
+# Datos temporales del panel
 data/tunnels.json
 data/*.backup.json
-*.log
+
+# Backups
+backups/
+
+# Sistema
 .DS_Store
+Thumbs.db
+
+# Variables privadas
+.env

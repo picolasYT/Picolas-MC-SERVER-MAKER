@@ -19,6 +19,9 @@ const ensureFolders = require('./src/utils/ensureFolders');
 const { readJson, writeJson } = require('./src/utils/jsonStore');
 const { createServer, ensureJar, startServer, stopServer, sendCommand, getState, isRunning } = require('./src/minecraft/serverManager');
 const { installPlugin } = require('./src/minecraft/pluginInstaller');
+const pluginStore = require('./src/minecraft/pluginStore');
+const { getProperties, saveProperties } = require('./src/minecraft/propertiesEditor');
+const { analyzeLogs } = require('./src/minecraft/logAnalyzer');
 const { optimizeServer } = require('./src/minecraft/optimizer');
 const { startPinggy, stopPinggy, getTunnel } = require('./src/tunnel/pinggyManager');
 const { getStats } = require('./src/stats/systemStats');
@@ -38,6 +41,8 @@ app.get('/api/health', (req,res)=>res.json({ok:true, name:'Picolas-Mc-Server', t
 app.get('/api/settings', (req,res)=>res.json(readJson(DATA('settings.json'), {})));
 app.post('/api/settings', (req,res)=>{ writeJson(DATA('settings.json'), req.body); res.json({ok:true}); });
 app.get('/api/plugins', (req,res)=>res.json(readJson(DATA('plugins.json'), [])));
+app.get('/api/plugin-packs', (req,res)=>res.json(readJson(DATA('plugin-packs.json'), [])));
+app.get('/api/plugins/search', async (req,res)=>{ try{ const items=await pluginStore.searchPlugins(req.query.q||'', req.query.limit||18); res.json({ok:true,items}); }catch(e){res.status(500).json({ok:false,error:e.message});} });
 
 app.get('/api/servers', (req,res)=>{
   res.json(servers().map(s=>({ ...s, running:isRunning(s.id), tunnel:getTunnel(s.id) })));
@@ -83,9 +88,22 @@ app.post('/api/servers/:id/player/:name/:action', (req,res)=>{
 
 app.post('/api/servers/:id/plugins/install', async (req,res)=>{ try{ const s=getServer(req.params.id); const dest=await installPlugin(path.join(ROOT,s.path), req.body); res.json({ok:true,dest}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
 
+app.get('/api/servers/:id/plugins/installed', async (req,res)=>{ try{ const s=getServer(req.params.id); const items=await pluginStore.listInstalledPlugins(ROOT,s); res.json({ok:true,items}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
+app.post('/api/servers/:id/plugins/store-install', async (req,res)=>{ try{ const s=getServer(req.params.id); const result=await pluginStore.installStorePlugin(ROOT,s,req.body); res.json({ok:true,result}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
+app.post('/api/servers/:id/plugins/update', async (req,res)=>{ try{ const s=getServer(req.params.id); const result=await pluginStore.updatePlugin(ROOT,s,req.body.projectId||null); res.json({ok:true,result}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
+app.post('/api/servers/:id/plugins/install-pack', async (req,res)=>{ try{ const s=getServer(req.params.id); const packs=readJson(DATA('plugin-packs.json'), []); const pack=packs.find(x=>x.id===req.body.packId); if(!pack) throw new Error('Pack no encontrado'); const result=await pluginStore.installPack(ROOT,s,pack); res.json({ok:true,result}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
+
+app.get('/api/servers/:id/properties', (req,res)=>{ try{ const s=getServer(req.params.id); res.json({ok:true,...getProperties(path.join(ROOT,s.path))}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
+app.post('/api/servers/:id/properties', (req,res)=>{ try{ const s=getServer(req.params.id); const result=saveProperties(path.join(ROOT,s.path), req.body.values||{}); res.json({ok:true,...result}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
+app.get('/api/servers/:id/log-insights', (req,res)=>{ try{ const st=getState(req.params.id); res.json({ok:true,issues:analyzeLogs(st?.logs||[])}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
+
+
 app.get('/api/servers/:id/files', (req,res)=>{ try{ const s=getServer(req.params.id); res.json({ok:true, files:fileManager.list(path.join(ROOT,s.path), req.query.path||'')}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
 app.get('/api/servers/:id/file', (req,res)=>{ try{ const s=getServer(req.params.id); res.json({ok:true, content:fileManager.read(path.join(ROOT,s.path), req.query.path)}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
 app.post('/api/servers/:id/file', (req,res)=>{ try{ const s=getServer(req.params.id); fileManager.write(path.join(ROOT,s.path), req.body.path, req.body.content); res.json({ok:true}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
+app.post('/api/servers/:id/folder', (req,res)=>{ try{ const s=getServer(req.params.id); fileManager.mkdir(path.join(ROOT,s.path), req.body.path); res.json({ok:true}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
+app.delete('/api/servers/:id/file', (req,res)=>{ try{ const s=getServer(req.params.id); fileManager.remove(path.join(ROOT,s.path), req.body.path); res.json({ok:true}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
+app.post('/api/servers/:id/upload-file', upload.single('file'), (req,res)=>{ try{ const s=getServer(req.params.id); if(!req.file) throw new Error('No llegó ningún archivo'); const rel=fileManager.moveUploaded(path.join(ROOT,s.path), req.file.path, req.body.destDir||'', req.file.originalname); res.json({ok:true,path:rel}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
 app.post('/api/servers/:id/upload-jar', upload.single('jar'), (req,res)=>{ try{ const s=getServer(req.params.id); fs.renameSync(req.file.path, path.join(ROOT,s.path,'server.jar')); res.json({ok:true}); }catch(e){res.status(400).json({ok:false,error:e.message});} });
 
 const settings = readJson(DATA('settings.json'), {panelPort:3000});
